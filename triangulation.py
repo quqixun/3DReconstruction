@@ -22,6 +22,9 @@ class Triangulation():
 
         K = np.diag(np.array([2000, 2000, 1]))
 
+        Ps = []
+        us = []
+
         def small_rotation(max_angle):
             axis = np.random.randn(3, 1)
             axis = axis / np.linalg.norm(axis)
@@ -32,4 +35,25 @@ class Triangulation():
                                  [-s[1], s[0], 0]]))
             return R
 
-        return U_true
+        return Ps, us, U_true
+
+    def minimal_triangulation(self, Ps, us):
+        return
+
+    def check_depth(self, Ps, U):
+        return
+
+    def reprojection_errors(self, Ps, us, U):
+        return
+
+    def clean_for_plot(self, Us):
+        return
+
+    def plot_in_views(self, Uc, views):
+        return
+
+    def refine_triangulation(self, Ps, us, Uhat):
+        return
+
+    def ransac_triangulation(self, Ps, us):
+        return
