@@ -5,6 +5,8 @@
 
 
 import numpy as np
+from matplotlib import pyplot as plt
+from mpl_toolkits.mplot3d import Axes3D
 
 
 class Triangulation():
@@ -114,12 +116,12 @@ class Triangulation():
 
         pts_num = Ps.shape[1]
 
-        U = np.zeros(3, 1)
+        U = np.zeros((3, 1))
         nbr_inliers = 0
 
         for i in range(100):
             idx = np.random.randint(pts_num, size=2)
-            Ps_pt = Ps[0, idx, :, :]
+            Ps_pt = Ps[:, idx, :, :]
             us_pt = us[:, idx]
 
             U_temp = self.minimal_triangulation(Ps_pt, us_pt)
@@ -135,10 +137,51 @@ class Triangulation():
 
         return U, nbr_inliers
 
-    def clean_for_plot(self, Us):
-        return
+    def reshape_Ps(self, Ps):
+        '''
+        '''
 
-    def plot_in_views(self, Uc, views):
+        Psr = np.zeros((1, Ps.shape[1], 3, 4))
+
+        for i in range(Ps.shape[1]):
+            Psr[0, i, :, :] = Ps[0, i]
+
+        return Psr
+
+    def clean_for_plot(self, Us):
+        '''
+        '''
+
+        minvals = np.percentile(Us, 1, axis=1)
+        maxvals = np.percentile(Us, 99, axis=1)
+
+        removed_idx = np.array([]).reshape((1, -1))
+        for i in range(Us.shape[0]):
+            removed_idx = \
+                np.append(removed_idx, np.where(
+                          np.logical_or(Us[i, :] > maxvals[i],
+                                        Us[i, :] < minvals[i]))[0])
+
+        removed_idx = np.unique(removed_idx.astype(int))
+
+        Us = np.delete(Us, removed_idx, 1)
+
+        return Us, removed_idx
+
+    def plot_in_views(self, Us, views):
+        '''
+        '''
+
+        Us, _ = self.clean_for_plot(Us)
+
+        fig = plt.figure()
+        ax = Axes3D(fig)
+        ax.scatter(Us[0, :], Us[1, :], Us[2, :], s=10, c=[0, 0, 0])
+        ax.view_init(elev=0, azim=90)
+        ax.grid(b=False)
+        ax.axis('off')
+        plt.show()
+
         return
 
     def refine_triangulation(self, Ps, us, Uhat):
