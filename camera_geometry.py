@@ -8,7 +8,9 @@
 # in class Triangulation.
 
 
+import os
 import numpy as np
+from scipy import io as sio
 from triangulation import Triangulation
 
 
@@ -29,17 +31,17 @@ U = tgl.minimal_triangulation(Ps, us)
 
 # Display the true points and triangulated points,
 # they should be identical when sigma equals to 0
-print(U)
-print(U_true)
+# print("Estimated U:\n", U)
+# print("Known U:\n", U_true)
 
 # Check the sign of depths
 positive = tgl.check_depth(Ps, U)
-print(positive)
+# print(positive)
 
 # Calculate the errors between known image points
 # and reprojected points
 errors = tgl.reprojection_errors(Ps, us, U)
-print(errors)
+# print(errors)
 
 '''
 Refine Triangulation by Gauss-Newton Method
