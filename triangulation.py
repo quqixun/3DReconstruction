@@ -176,8 +176,8 @@ class Triangulation():
 
         fig = plt.figure()
         ax = Axes3D(fig)
-        ax.scatter(Us[0, :], Us[1, :], Us[2, :], s=10, c=[0, 0, 0])
-        ax.view_init(elev=0, azim=90)
+        ax.scatter(Us[0, :], Us[1, :], Us[2, :], s=1, c=[0, 0, 0])
+        ax.view_init(elev=views[0], azim=views[1])
         ax.grid(b=False)
         ax.axis('off')
         plt.show()

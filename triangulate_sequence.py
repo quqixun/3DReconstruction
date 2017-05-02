@@ -40,4 +40,4 @@ seconds = timeit.default_timer() - start
 print("{} minutes {} seconds".format(np.floor(seconds / 60),
                                      np.mod(seconds, 60)))
 
-tgl.plot_in_views(Us, [-170, 5])
+tgl.plot_in_views(Us, [0, 90])
