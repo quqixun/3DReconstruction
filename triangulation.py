@@ -104,7 +104,8 @@ class Triangulation():
             else:
                 x_hat = np.dot(Ps[0, i, 0, :], U) / np.dot(Ps[0, i, 2, :], U)
                 y_hat = np.dot(Ps[0, i, 1, :], U) / np.dot(Ps[0, i, 2, :], U)
-                diff = np.array([x_hat, y_hat]) - us[:, i].reshape((-1, 1))
+                diff = np.array([x_hat - us[0, i],
+                                 y_hat - us[1, i]]).reshape((-1, 1))
 
                 errors[i] = np.sqrt(np.sum(np.power(diff, 2)))
 
@@ -168,15 +169,15 @@ class Triangulation():
 
         return Us, removed_idx
 
-    def plot_in_views(self, Us, views):
+    def plot_in_views(self, Us, views, s=1, figsize=[8, 8]):
         '''
         '''
 
         Us, _ = self.clean_for_plot(Us)
 
-        fig = plt.figure()
+        fig = plt.figure(figsize=figsize)
         ax = Axes3D(fig)
-        ax.scatter(Us[0, :], Us[1, :], Us[2, :], s=1, c=[0, 0, 0])
+        ax.scatter(Us[0, :], Us[1, :], Us[2, :], s=s, c=[0, 0, 0])
         ax.view_init(elev=views[0], azim=views[1])
         ax.grid(b=False)
         ax.axis('off')
@@ -184,5 +185,62 @@ class Triangulation():
 
         return
 
+    def compute_residuals(self, Ps, us, U):
+        '''
+        '''
+
+        pts_num = Ps.shape[1]
+        U = np.append(U, 1).reshape((-1, 1))
+
+        all_residuals = np.zeros((2, pts_num))
+
+        for i in range(pts_num):
+            lmd = np.dot(Ps[0, i, 2, :], U)
+            if lmd <= 0 or np.isnan(lmd):
+                all_residuals[:, i:1] = np.array([[np.inf], [np.inf]])
+            else:
+                x_hat = np.dot(Ps[0, i, 0, :], U) / lmd
+                y_hat = np.dot(Ps[0, i, 1, :], U) / lmd
+
+                all_residuals[:, i:i + 1] = \
+                    np.array([x_hat - us[0, i],
+                              y_hat - us[1, i]]).reshape((-1, 1))
+
+        return all_residuals.T.reshape((-1, 1))
+
+    def compute_jecobian(self, Ps, U):
+        '''
+        '''
+
+        pts_num = Ps.shape[1]
+        U = np.append(U, 1).reshape((-1, 1))
+
+        jacobian = np.zeros((2 * pts_num, 3))
+
+        for i in range(pts_num):
+            Psi = Ps[0, i, :, :]
+            aiU = np.dot(Psi[0, :], U)
+            biU = np.dot(Psi[1, :], U)
+            ciU = np.dot(Psi[2, :], U)
+
+            for j in range(3):
+                jacobian[2 * i, j] = (Psi[0, j] * ciU -
+                                      Psi[2, j] * aiU) / np.power(ciU, 2)
+                jacobian[2 * i + 1, j] = (Psi[1, j] * ciU -
+                                          Psi[2, j] * biU) / np.power(ciU, 2)
+
+        return jacobian
+
     def refine_triangulation(self, Ps, us, Uhat):
-        return
+        '''
+        '''
+
+        iter_num = 5
+        U = np.copy(Uhat)
+
+        for i in range(iter_num):
+            r_bar = self.compute_residuals(Ps, us, U)
+            J = self.compute_jecobian(Ps, U)
+            U -= np.dot(np.linalg.lstsq(np.dot(J.T, J), J.T)[0], r_bar)
+
+        return U

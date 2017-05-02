@@ -8,7 +8,6 @@
 # in class Triangulation.
 
 
-import os
 import numpy as np
 from scipy import io as sio
 from triangulation import Triangulation
@@ -48,24 +47,31 @@ Refine Triangulation by Gauss-Newton Method
 '''
 
 # Load data
-Uhat = []
+data = sio.loadmat('data/gauss_newton.mat')
+u = data['u']
+u_tilde = data['u_tilde']
+P = data['P']
+P_tilde = data['P_tilde']
+Uhat = data['Uhat']
 
-# Extract one example to test the refine function
-idx = 1
-
-# Combine two image points into one matrix
-us = []
+# Obtain the number of 3D points
+pts_num = Uhat.shape[1]
 
 # Combine two camera matrix into one array
-Ps = []
+Ps = np.array([[P, P_tilde]])
 
-# Preceed refination
-U = tgl.refine_triangulation(Ps, us, Uhat)
+# Initialize the matrix to store refine points
+U = np.zeros((3, pts_num))
+
+for i in range(pts_num):
+    # Combine two image points into one matrix
+    us = np.hstack((u[:, i:i + 1], u_tilde[:, i:i + 1]))
+
+    # Preceed refination
+    U[:, i:i + 1] = tgl.refine_triangulation(Ps, us, Uhat[:, i:i + 1])
 
 # Plot original 3D points
-view = []
-tgl.plot_in_views(Uhat, view)
+tgl.plot_in_views(Uhat, [6, -92], 2, [6, 2])
 
 # Plot refined 3D points
-view = []
-tgl.plot_in_views(U, view)
+tgl.plot_in_views(U, [6, -92], 2, [6, 2])
